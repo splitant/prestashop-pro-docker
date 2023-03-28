@@ -1,0 +1,67 @@
+version: '3.7'
+
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: "${PROJECT_NAME}_mysql"
+    ports:
+      - ${DB_PORT}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+  
+  prestashop:
+    build:
+      context: .
+      dockerfile: .docker/prestashop/Dockerfile
+      args:
+        - GROUP_ID=${GROUP_ID}
+        - USER_ID=${USER_ID}
+        - PS_VERSION=${PS_VERSION}
+    container_name: "${PROJECT_NAME}_prestashop"
+    environment:
+      PS_INSTALL_AUTO: ${PS_INSTALL_AUTO}
+      PS_GIT_VERSION: ${PS_GIT_VERSION}
+      DB_PASSWD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+      DB_SERVER: ${PROJECT_NAME}_mysql
+      DB_PREFIX: ${DB_PREFIX}
+      PS_DOMAIN: ${PROJECT_BASE_URL}:${PROJECT_PORT}
+      PS_FOLDER_INSTALL: ${PS_FOLDER_INSTALL}
+      PS_FOLDER_ADMIN: ${PS_FOLDER_ADMIN}
+      PS_COUNTRY: ${PS_COUNTRY}
+      PS_LANGUAGE: ${PS_LANGUAGE}
+      PS_DEV_MODE: ${PS_DEV_MODE}
+      ADMIN_MAIL: ${ADMIN_MAIL}
+      ADMIN_PASSWD: ${ADMIN_PASSWD}
+      PS_ENABLE_SSL: ${PS_ENABLE_SSL}
+    depends_on:
+      - mysql
+    volumes:
+      - ./project:/var/www/html:delegated
+    labels:
+      - "traefik.http.routers.${PROJECT_NAME}_prestashop.rule=Host(`${PROJECT_BASE_URL}`)"
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: "${PROJECT_NAME}_pma"
+    environment:
+      PMA_HOST: ${DB_HOST}
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+      UPLOAD_LIMIT: 1G
+    labels:
+    - "traefik.http.routers.${PROJECT_NAME}_pma.rule=Host(`pma.${PROJECT_BASE_URL}`)"
+
+  traefik:
+    image: traefik:v2.0
+    container_name: "${PROJECT_NAME}_traefik"
+    command: --api.insecure=true --providers.docker
+    ports:
+    - "${PROJECT_PORT}:80"
+#    - '8080:8080' # Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
