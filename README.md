@@ -23,6 +23,17 @@ The goal is to set up fastly a local Prestashop project with docker environment 
    # Fill env file
    make up
    ```
+### Existing project
+
+   ```sh
+   make create-init <project>
+   cd ../<project>-docker
+   # Get project source files (via 'git' or 'rsync') into 'project' directory
+   make copy-env-file
+   # Fill env file
+   # set "DISABLE_MAKE=1" if no composer.json
+   make up
+   ```
 
 ### Connect to Prestashop container
 

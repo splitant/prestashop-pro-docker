@@ -59,6 +59,10 @@ ps:
 shell:
 	docker exec -u www-data -ti -e COLUMNS=$(shell tput cols) -e LINES=$(shell tput lines) $(shell docker ps --filter name='$(PROJECT_NAME)_$(or $(filter-out $@,$(MAKECMDGOALS)), 'prestashop')' --format "{{ .ID }}") bash
 
+.PHONY: shell-root
+shell-root:
+	docker exec -ti -e COLUMNS=$(shell tput cols) -e LINES=$(shell tput lines) $(shell docker ps --filter name='$(PROJECT_NAME)_$(or $(filter-out $@,$(MAKECMDGOALS)), 'prestashop')' --format "{{ .ID }}") bash
+
 ## logs	:	View containers logs.
 ##		You can optinally pass an argument with the service name to limit logs
 ##		logs php	: View `php` container logs.
@@ -78,6 +82,18 @@ create-init:
 copy-env-file:
 ## copy-env-file	:	Creates .env file.
 	cp .env.dist .env
+
+.PHONY: create-dump
+create-dump:
+## create-dump	:	Creates gzip BDD dump.
+	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysqldump -u"root" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)" --databases --add-drop-database | docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") sh -c 'gzip > dumpfilename.sql.gz'
+
+.PHONY: restore-dump
+restore-dump:
+## restore-dump	:	Creates gzip BDD dump.
+##		For example: make restore-dump "<dump_filename>.sql.gz"
+	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") zcat $(filter-out $@,$(MAKECMDGOALS)) | docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysql -u"root" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)"
+
 
 # https://stackoverflow.com/a/6273809/1826109
 %:

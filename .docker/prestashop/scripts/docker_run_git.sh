@@ -1,6 +1,10 @@
 #!/bin/sh
 
-runuser -g www-data -u www-data -- git clone --depth=50 --branch=$PS_GIT_VERSION https://github.com/PrestaShop/PrestaShop.git .
+if [ ! -f ./config/settings.inc.php ]; then
+    if [ $PS_INSTALL_AUTO = 1 ]; then
+        runuser -g www-data -u www-data -- git clone --depth=50 --branch=$PS_GIT_VERSION https://github.com/PrestaShop/PrestaShop.git .
+    fi
+fi
 
 if [ "${DISABLE_MAKE}" != "1" ]; then
   echo "\n* Running composer ...";
