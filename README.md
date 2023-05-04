@@ -10,6 +10,10 @@ The goal is to set up fastly a local Prestashop project with docker environment 
 
 ## Getting Started
 
+### Requirements
+
+* Install [mkcert](https://github.com/FiloSottile/mkcert)
+
 ### Installation
 
 (In progress)

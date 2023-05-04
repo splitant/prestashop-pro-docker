@@ -1,5 +1,35 @@
 #!/bin/sh
 
+if [ $PS_ENABLE_SSL = 1 ]; then
+  echo "\n* Remove default-ssl.conf file ...";
+  rm /etc/apache2/sites-available/default-ssl.conf
+
+  echo "\n* Enable SSL in Apache ...";
+  a2enmod ssl
+
+  echo "\n* Restart apache ...";
+  service apache2 restart
+
+  echo "\n* Add virtual host for HTTPS ...";
+  echo "<VirtualHost *:443>
+    ServerName localhost
+    DocumentRoot /var/www/html
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    SSLEngine on
+    SSLCertificateFile /var/www/.certs/localhost.pem
+    SSLCertificateKeyFile /var/www/.certs/localhost-key.pem
+  </VirtualHost>" > /etc/apache2/sites-available/001-ssl.conf
+
+  echo "\n* Enable https site"
+  a2ensite 001-ssl
+
+  ## Stop Apache process because apache2-foreground will start it
+  echo "\n* Stop apache ...";
+  service apache2 stop
+else
+  echo "\n* HTTPS is not enabled.";
+fi
+
 if [ ! -f ./config/settings.inc.php ]; then
     if [ $PS_INSTALL_AUTO = 1 ]; then
         runuser -g www-data -u www-data -- git clone --depth=50 --branch=$PS_GIT_VERSION https://github.com/PrestaShop/PrestaShop.git .
