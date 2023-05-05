@@ -1,0 +1,25 @@
+<?php return array (
+  'parameters' => 
+  array (
+    'database_host' => getenv('DB_SERVER'),
+    'database_port' => '',
+    'database_name' => getenv('DB_NAME'),
+    'database_user' => getenv('DB_USER'),
+    'database_password' => getenv('DB_PASSWD'),
+    'database_prefix' => getenv('DB_PREFIX'),
+    'database_engine' => 'InnoDB',
+    'mailer_transport' => 'smtp',
+    'mailer_host' => '127.0.0.1',
+    'mailer_user' => NULL,
+    'mailer_password' => NULL,
+    'secret' => '',
+    'ps_caching' => 'CacheMemcache',
+    'ps_cache_enable' => false,
+    'ps_creation_date' => '2022-02-07',
+    'locale' => 'fr-FR',
+    'use_debug_toolbar' => true,
+    'cookie_key' => '',
+    'cookie_iv' => '',
+    'new_cookie_key' => '',
+  ),
+);
