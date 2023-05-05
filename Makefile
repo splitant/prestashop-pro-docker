@@ -102,6 +102,19 @@ restore-dump:
 ##		For example: make restore-dump "<dump_filename>.sql.gz"
 	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") zcat $(filter-out $@,$(MAKECMDGOALS)) | docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysql -u"root" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)"
 
+.PHONY: mysql-query
+mysql-query:
+## mysql-query	:	Executes mysql query.
+##		For example: make mysql-query "SHOW DATABASES;"
+	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysql -u"root" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)" -e '$(filter-out $@,$(MAKECMDGOALS))'
+
+.PHONY: mysql-domain-operations
+mysql-domain-operations:
+## mysql-domain-operations	:	Executes mysql queries operations to update domain URL.
+	$(MAKE) mysql-query 'UPDATE $(DB_PREFIX)configuration SET value = "$(PROJECT_BASE_URL):$(PROJECT_PORT)" WHERE name = "PS_SHOP_DOMAIN";'
+	$(MAKE) mysql-query 'UPDATE $(DB_PREFIX)configuration SET value = "$(PROJECT_BASE_URL):$(PROJECT_PORT)" WHERE name = "PS_SHOP_DOMAIN_SSL";'
+	$(MAKE) mysql-query 'UPDATE $(DB_PREFIX)configuration SET value = "[\"https:\\/\\/$(PROJECT_BASE_URL):$(PROJECT_PORT)\"]" WHERE name = "SC_CORS_DOMAINS";'
+	$(MAKE) mysql-query 'UPDATE $(DB_PREFIX)shop_url SET domain = "$(PROJECT_BASE_URL):$(PROJECT_PORT)", domain_ssl = "$(PROJECT_BASE_URL):$(PROJECT_PORT)";'
 
 # https://stackoverflow.com/a/6273809/1826109
 %:
