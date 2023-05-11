@@ -7,7 +7,7 @@ services:
     ports:
       - ${DB_PORT}
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
@@ -53,8 +53,8 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: "${PROJECT_NAME}_pma"
     environment:
-      PMA_HOST: ${DB_HOST}
-      PMA_USER: ${DB_USER}
+      PMA_HOST: ${PROJECT_NAME}_mysql
+      PMA_USER: root
       PMA_PASSWORD: ${DB_PASSWORD}
       UPLOAD_LIMIT: 1G
     depends_on:
