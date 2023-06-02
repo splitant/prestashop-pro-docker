@@ -7,7 +7,7 @@ services:
     ports:
       - ${DB_PORT}
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
@@ -26,6 +26,7 @@ services:
       PS_GIT_VERSION: ${PS_GIT_VERSION}
       DB_PASSWD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
       DB_PORT: ${DB_PORT}
       DB_SERVER: ${PROJECT_NAME}_mysql
       DB_PREFIX: ${DB_PREFIX}

@@ -94,19 +94,19 @@ generate-ssl-ca:
 .PHONY: create-dump
 create-dump:
 ## create-dump	:	Creates gzip BDD dump.
-	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysqldump -u"root" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)" --single-transaction --create-options --extended-insert --complete-insert --databases --add-drop-database | docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") sh -c 'gzip > dump_$(shell date +%d%m%Y-%H%M%S).sql.gz'
+	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysqldump -u"$(DB_USER)" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)" --single-transaction --create-options --extended-insert --complete-insert --databases --add-drop-database | docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") sh -c 'gzip > dump_$(shell date +%d%m%Y-%H%M%S).sql.gz'
 
 .PHONY: restore-dump
 restore-dump:
 ## restore-dump	:	Creates gzip BDD dump.
 ##		For example: make restore-dump "<dump_filename>.sql.gz"
-	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") zcat $(filter-out $@,$(MAKECMDGOALS)) | docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysql -u"root" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)"
+	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") zcat $(filter-out $@,$(MAKECMDGOALS)) | docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysql -u"$(DB_USER)" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)"
 
 .PHONY: mysql-query
 mysql-query:
 ## mysql-query	:	Executes mysql query.
 ##		For example: make mysql-query "SHOW DATABASES;"
-	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysql -u"root" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)" -e '$(filter-out $@,$(MAKECMDGOALS))'
+	docker exec -u www-data -i $(shell docker ps --filter name='^/$(PROJECT_NAME)_prestashop' --format "{{ .ID }}") mysql -u"$(DB_USER)" -p"$(DB_PASSWORD)" -h"$(PROJECT_NAME)_$(DB_HOST)" "$(DB_NAME)" -e '$(filter-out $@,$(MAKECMDGOALS))'
 
 .PHONY: mysql-domain-operations
 mysql-domain-operations:
