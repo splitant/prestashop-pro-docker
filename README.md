@@ -15,9 +15,9 @@ The goal is to set up fastly a local Prestashop project with docker environment 
 ## New project
 
    ```sh
+   git clone git@github.com:splitant/prestashop-pro-docker.git
+   cd prestashop-pro-docker
    make create-init <project>
-   cd ../<project>-docker
-   make copy-env-file
    # Fill env file
    make up
    ```
@@ -27,8 +27,9 @@ The goal is to set up fastly a local Prestashop project with docker environment 
 ### Create project directory
 
    ```sh
+   git clone git@github.com:splitant/prestashop-pro-docker.git
+   cd prestashop-pro-docker
    make create-init <project>
-   cd ../<project>-docker
    ```
 
 ### Get project source files into 'project' directory
@@ -55,9 +56,7 @@ The goal is to set up fastly a local Prestashop project with docker environment 
 
 ### Install project
 
-   ```sh
-   make copy-env-file
-   
+   ```sh   
    # Fill env file
    # set "DISABLE_MAKE=1" if no composer.json
 

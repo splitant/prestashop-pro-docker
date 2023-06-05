@@ -76,8 +76,9 @@ logs:
 create-init:
 ## create-init	:	Creates folder project.
 ##		For example: make create-init "<project_name>"
-	cp -R ${DESKTOP_PATH}prestashop-pro-docker ${DESKTOP_PATH}$(word 2, $(MAKECMDGOALS))-docker
+	mv ${DESKTOP_PATH}prestashop-pro-docker ${DESKTOP_PATH}$(word 2, $(MAKECMDGOALS))-docker
 	mkdir ${DESKTOP_PATH}$(word 2, $(MAKECMDGOALS))-docker/project
+	$(MAKE) copy-env-file
 
 .PHONY: copy-env-file
 copy-env-file:
