@@ -62,3 +62,10 @@ services:
       - mysql
     ports:
       - "8080:80"
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: "${PROJECT_NAME}_mailhog"
+    ports:
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui
