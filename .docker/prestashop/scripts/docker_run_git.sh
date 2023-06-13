@@ -60,7 +60,7 @@ elif [ "$DB_SERVER" != "<to be defined>" -a $PS_INSTALL_AUTO = 1 ]; then
             sleep 5
         fi
     done
-        echo "\n* DB server $DB_SERVER is available, let's continue !"
+    echo "\n* DB server $DB_SERVER is available, let's continue !"
 fi
 
 # From now, stop at error

@@ -40,6 +40,7 @@ services:
       ADMIN_PASSWD: ${ADMIN_PASSWD}
       PS_ENABLE_SSL: ${PS_ENABLE_SSL}
       DISABLE_MAKE: ${DISABLE_MAKE}
+      PS_DEMO_MODE: ${PS_DEMO_MODE}
     depends_on:
       - mysql
     volumes:
