@@ -1,77 +1,75 @@
 #!/bin/sh
 
-if [ $PS_ENABLE_SSL = 1 ]; then
-  echo "\n* Remove default-ssl.conf file ...";
-  rm /etc/apache2/sites-available/default-ssl.conf
+if [ $PS_ENABLE_SSL = 1 -a ! -f /etc/apache2/sites-available/001-ssl.conf ]; then
+    echo "\n* Remove default-ssl.conf file ...";
+    rm /etc/apache2/sites-available/default-ssl.conf
 
-  echo "\n* Enable SSL in Apache ...";
-  a2enmod ssl
+    echo "\n* Enable SSL in Apache ...";
+    a2enmod ssl
 
-  echo "\n* Restart apache ...";
-  service apache2 restart
+    echo "\n* Restart apache ...";
+    service apache2 restart
 
-  echo "\n* Add virtual host for HTTPS ...";
-  echo "<VirtualHost *:443>
-    ServerName localhost
-    DocumentRoot /var/www/html
-    ErrorLog \${APACHE_LOG_DIR}/error.log
-    SSLEngine on
-    SSLCertificateFile /var/www/.certs/localhost.pem
-    SSLCertificateKeyFile /var/www/.certs/localhost-key.pem
-  </VirtualHost>" > /etc/apache2/sites-available/001-ssl.conf
+    echo "\n* Add virtual host for HTTPS ...";
+    echo "<VirtualHost *:443>
+        ServerName localhost
+        DocumentRoot /var/www/html
+        ErrorLog \${APACHE_LOG_DIR}/error.log
+        SSLEngine on
+        SSLCertificateFile /var/www/.certs/localhost.pem
+        SSLCertificateKeyFile /var/www/.certs/localhost-key.pem
+    </VirtualHost>" > /etc/apache2/sites-available/001-ssl.conf
 
-  echo "\n* Enable https site"
-  a2ensite 001-ssl
+    echo "\n* Enable https site"
+    a2ensite 001-ssl
 
-  ## Stop Apache process because apache2-foreground will start it
-  echo "\n* Stop apache ...";
-  service apache2 stop
+    ## Stop Apache process because apache2-foreground will start it
+    echo "\n* Stop apache ...";
+    service apache2 stop
 else
-  echo "\n* HTTPS is not enabled.";
+    echo "\n* HTTPS is not enabled.";
 fi
 
 if [ ! -f ./config/settings.inc.php ]; then
     if [ $PS_INSTALL_AUTO = 1 ]; then
-        runuser -g www-data -u www-data -- git clone --depth=50 --branch=$PS_GIT_VERSION https://github.com/PrestaShop/PrestaShop.git .
+        runuser -g www-data -u www-data -- composer create-project prestashop/prestashop . $PS_GIT_VERSION
     fi
-fi
 
-if [ "${DISABLE_MAKE}" != "1" ]; then
-  echo "\n* Running composer ...";
-  runuser -g www-data -u www-data -- /usr/local/bin/composer install --no-interaction
+    if [ "${DISABLE_MAKE}" != "1" ]; then
+        echo "\n* Running composer ...";
+        runuser -g www-data -u www-data -- /usr/local/bin/composer install --no-interaction
 
-  echo "\n* Build assets ...";
-  runuser -g www-data -u www-data -- /usr/bin/make assets
-fi
+        echo "\n* Build assets ...";
+        runuser -g www-data -u www-data -- /usr/bin/make assets
+    fi
 
-if [ "$DB_SERVER" = "<to be defined>" -a $PS_INSTALL_AUTO = 1 ]; then
-    echo >&2 'error: You requested automatic PrestaShop installation but MySQL server address is not provided '
-    echo >&2 '  You need to specify DB_SERVER in order to proceed'
-    exit 1
-elif [ "$DB_SERVER" != "<to be defined>" -a $PS_INSTALL_AUTO = 1 ]; then
-    RET=1
-    while [ $RET -ne 0 ]; do
-        echo "\n* Checking if $DB_SERVER is available..."
-        mysql -h $DB_SERVER -P $DB_PORT -u $DB_USER -p$DB_PASSWD -e "status" > /dev/null 2>&1
-        RET=$?
+    if [ "$DB_SERVER" = "<to be defined>" -a $PS_INSTALL_AUTO = 1 ]; then
+        echo >&2 'error: You requested automatic PrestaShop installation but MySQL server address is not provided '
+        echo >&2 '  You need to specify DB_SERVER in order to proceed'
+        exit 1
+    elif [ "$DB_SERVER" != "<to be defined>" -a $PS_INSTALL_AUTO = 1 ]; then
+        RET=1
+        while [ $RET -ne 0 ]; do
+            echo "\n* Checking if $DB_SERVER is available..."
+            mysql -h $DB_SERVER -P $DB_PORT -u $DB_USER -p$DB_PASSWD -e "status" > /dev/null 2>&1
+            RET=$?
 
-        if [ $RET -ne 0 ]; then
-            echo "\n* Waiting for confirmation of MySQL service startup";
-            sleep 5
-        fi
-    done
-    echo "\n* DB server $DB_SERVER is available, let's continue !"
-fi
+            if [ $RET -ne 0 ]; then
+                echo "\n* Waiting for confirmation of MySQL service startup";
+                sleep 5
+            fi
+        done
+        echo "\n* DB server $DB_SERVER is available, let's continue !"
+    fi
 
-# From now, stop at error
-set -e
+    # From now, stop at error
+    set -e
 
-if [ $PS_DEV_MODE -ne 1 ]; then
-  echo "\n* Disabling DEV mode ...";
-  sed -ie "s/define('_PS_MODE_DEV_', true);/define('_PS_MODE_DEV_',\ false);/g" /var/www/html/config/defines.inc.php
-fi
+    if [ $PS_DEV_MODE -ne 1 ]; then
+        echo "\n* Disabling DEV mode ...";
+        sed -i -e "s/define('_PS_MODE_DEV_', true);/define('_PS_MODE_DEV_',\ false);/g" /var/www/html/config/defines.inc.php
+    fi
 
-if [ ! -f ./config/settings.inc.php ]; then
     if [ $PS_INSTALL_AUTO = 1 ]; then
 
         echo "\n* Installing PrestaShop, this may take a while ...";
@@ -106,13 +104,13 @@ if [ ! -f ./config/settings.inc.php ]; then
             echo 'warning: PrestaShop installation failed.'
         fi
     fi
+
+    if [ $PS_DEMO_MODE -ne 0 ]; then
+        echo "\n* Enabling DEMO mode ...";
+        sed -ie "s/define('_PS_MODE_DEMO_', false);/define('_PS_MODE_DEMO_',\ true);/g" /var/www/html/config/defines.inc.php
+    fi
 else
     echo "\n* PrestaShop Core already installed...";
-fi
-
-if [ $PS_DEMO_MODE -ne 0 ]; then
-    echo "\n* Enabling DEMO mode ...";
-    sed -ie "s/define('_PS_MODE_DEMO_', false);/define('_PS_MODE_DEMO_',\ true);/g" /var/www/html/config/defines.inc.php
 fi
 
 echo "\n* Almost ! Starting web server now\n";
